@@ -5,7 +5,7 @@ This module provides ShadowRoot class that encapsulates shadow DOM operations
 while maintaining security boundaries and proper error handling.
 """
 
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from pydoll.commands import DomCommands
 from pydoll.connection import ConnectionHandler
@@ -160,7 +160,7 @@ class ShadowRoot(FindElementsMixin):
         self._ensure_shadow_root_accessible()
 
         command = DomCommands.get_outer_html(object_id=self._shadow_root_object_id)
-        response = await self._connection_handler.execute_command(command)
+        response: Dict[str, Any] = await self._connection_handler.execute_command(command)
         return response['result']['outerHTML']
 
     def invalidate(self):
@@ -260,7 +260,9 @@ class ShadowRoot(FindElementsMixin):
         if method == 'css':
             # First we need to get the node_id from the object_id
             request_command = DomCommands.request_node(object_id=self._shadow_root_object_id)
-            request_response = await self._connection_handler.execute_command(request_command)
+            request_response: Dict[str, Any] = await self._connection_handler.execute_command(
+                request_command
+            )
             node_id = request_response['result']['nodeId']
 
             # Use DOM.querySelector with shadow root as context
@@ -272,15 +274,17 @@ class ShadowRoot(FindElementsMixin):
             raise ValueError(f'Unsupported selection method: {method}')
 
         try:
-            response = await self._connection_handler.execute_command(command)
+            response: Dict[str, Any] = await self._connection_handler.execute_command(command)
 
             if method == 'css':
                 node_id = response['result'].get('nodeId')
                 if node_id:
                     # Convert node_id to object_id for WebElement
                     object_command = DomCommands.resolve_node(node_id=node_id)
-                    object_response = await self._connection_handler.execute_command(object_command)
-                    object_id = object_response['result']['object']['objectId']
+                    obj_response: Dict[str, Any] = await self._connection_handler.execute_command(
+                        object_command
+                    )
+                    object_id = obj_response['result']['object']['objectId']
 
                     return WebElement(
                         object_id=object_id,
@@ -307,7 +311,7 @@ class ShadowRoot(FindElementsMixin):
                 raise ElementNotFound(f"Element '{selector}' not found in shadow root: {e}")
             return None
 
-    async def _find_multiple_in_shadow_context(
+    async def _find_multiple_in_shadow_context(  # noqa: PLR6301
         self, selector: str, method: str, timeout: int
     ) -> list[WebElement]:
         """

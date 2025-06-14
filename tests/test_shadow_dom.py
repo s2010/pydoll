@@ -285,8 +285,9 @@ class TestWebElementShadowRootAccess:
             connection_handler=connection_handler
         )
         
-        with pytest.raises(NoShadowRootAttached):
-            await element.get_shadow_root()
+        # Should return None when no shadow root is attached
+        shadow_root = await element.get_shadow_root()
+        assert shadow_root is None
 
     @pytest.mark.asyncio
     async def test_get_shadow_root_missing_node_id(self):
@@ -310,7 +311,7 @@ class TestWebElementShadowRootAccess:
             connection_handler=connection_handler
         )
         
-        with pytest.raises(InvalidShadowRoot, match="missing node ID"):
+        with pytest.raises(ShadowRootAccessDenied, match="no nodeId available"):
             await element.get_shadow_root()
 
 
@@ -423,5 +424,5 @@ class TestShadowRootIntegration:
             connection_handler=connection_handler
         )
         
-        with pytest.raises(InvalidShadowRoot, match="Failed to access shadow root"):
+        with pytest.raises(ShadowRootAccessDenied, match="Failed to access shadow root"):
             await element.get_shadow_root() 
