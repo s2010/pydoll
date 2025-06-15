@@ -6,10 +6,9 @@ Includes security-focused implementations for element finding and manipulation.
 """
 
 # Import WebElement first since ShadowRoot depends on it
-from pydoll.elements.web_element import WebElement
-
 # Import ShadowRoot second to avoid circular dependency
 from pydoll.elements.shadow_root import ShadowRoot
+from pydoll.elements.web_element import WebElement
 
 __all__ = [
     'WebElement',
