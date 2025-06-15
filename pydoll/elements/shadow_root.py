@@ -5,16 +5,18 @@ This module provides ShadowRoot class that encapsulates shadow DOM operations
 while maintaining security boundaries and proper error handling.
 """
 
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from pydoll.commands import DomCommands
 from pydoll.connection import ConnectionHandler
 from pydoll.elements.mixins import FindElementsMixin
-from pydoll.elements.web_element import WebElement
 from pydoll.exceptions import (
     ElementNotFound,
     InvalidShadowRoot,
 )
+
+if TYPE_CHECKING:
+    from pydoll.elements.web_element import WebElement
 
 
 class ShadowRoot(FindElementsMixin):
@@ -36,7 +38,7 @@ class ShadowRoot(FindElementsMixin):
         shadow_root_object_id: str,
         connection_handler: ConnectionHandler,
         mode: str = 'open',
-        host_element: Optional[WebElement] = None,
+        host_element: Optional['WebElement'] = None,
     ):
         """
         Initialize shadow root wrapper with security validation.
@@ -74,7 +76,7 @@ class ShadowRoot(FindElementsMixin):
         return self._mode == 'closed'
 
     @property
-    def host_element(self) -> Optional[WebElement]:
+    def host_element(self) -> Optional['WebElement']:
         """Reference to the shadow host element, if available."""
         return self._host_element
 
@@ -84,7 +86,7 @@ class ShadowRoot(FindElementsMixin):
         method: str = 'css',
         timeout: int = 10,
         raise_exc: bool = True,
-    ) -> Optional[WebElement]:
+    ) -> Optional['WebElement']:
         """
         Find single element within this shadow root.
 
@@ -123,7 +125,7 @@ class ShadowRoot(FindElementsMixin):
         selector: str,
         method: str = 'css',
         timeout: int = 10,
-    ) -> list[WebElement]:
+    ) -> list['WebElement']:
         """
         Find multiple elements within this shadow root.
 
@@ -250,7 +252,7 @@ class ShadowRoot(FindElementsMixin):
 
     async def _find_in_shadow_context(
         self, selector: str, method: str, timeout: int, raise_exc: bool
-    ) -> Optional[WebElement]:
+    ) -> Optional['WebElement']:
         """
         Internal method to find element within shadow root context.
 
@@ -286,6 +288,9 @@ class ShadowRoot(FindElementsMixin):
                     )
                     object_id = obj_response['result']['object']['objectId']
 
+                    # Import here to avoid circular imports
+                    from pydoll.elements.web_element import WebElement  # noqa: PLC0415
+
                     return WebElement(
                         object_id=object_id,
                         connection_handler=self._connection_handler,
@@ -313,7 +318,7 @@ class ShadowRoot(FindElementsMixin):
 
     async def _find_multiple_in_shadow_context(  # noqa: PLR6301
         self, selector: str, method: str, timeout: int
-    ) -> list[WebElement]:
+    ) -> list['WebElement']:
         """
         Internal method to find multiple elements within shadow root context.
         """
